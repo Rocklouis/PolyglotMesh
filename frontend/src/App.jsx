@@ -1,7 +1,8 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import "./App.css";
+
+const STORAGE_KEY = "polyglotmesh-code-v1";
 
 const languages = {
   Java: {
@@ -35,14 +36,33 @@ greet();`
   }
 };
 
-function App() {
-  const [activeTab, setActiveTab] = useState("Java");
+function loadSavedCodes() {
+  try {
+    const savedCodes = localStorage.getItem(STORAGE_KEY);
 
-  const [codes, setCodes] = useState({
+    if (savedCodes) {
+      const parsedCodes = JSON.parse(savedCodes);
+
+      return {
+        Java: parsedCodes.Java ?? languages.Java.code,
+        Python: parsedCodes.Python ?? languages.Python.code,
+        JavaScript: parsedCodes.JavaScript ?? languages.JavaScript.code
+      };
+    }
+  } catch (error) {
+    console.error("Unable to load saved code:", error);
+  }
+
+  return {
     Java: languages.Java.code,
     Python: languages.Python.code,
     JavaScript: languages.JavaScript.code
-  });
+  };
+}
+
+function App() {
+  const [activeTab, setActiveTab] = useState("Java");
+  const [codes, setCodes] = useState(loadSavedCodes);
 
   const [output, setOutput] = useState(
     "Welcome to PolyglotMesh.\nSelect a language and write your code."
@@ -51,6 +71,14 @@ function App() {
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
 
   const currentLanguage = languages[activeTab];
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
+    } catch (error) {
+      console.error("Unable to save code:", error);
+    }
+  }, [codes]);
 
   const handleEditorChange = (value) => {
     setCodes((previous) => ({
@@ -65,6 +93,7 @@ function App() {
       "Execution API is not connected yet.\n" +
       "Your code is ready to be sent to the GraalVM backend."
     );
+
     setIsConsoleOpen(true);
   };
 
@@ -73,6 +102,7 @@ function App() {
       <header className="header">
         <div className="brand">
           <div className="brand-icon">P</div>
+
           <div>
             <h1>PolyglotMesh</h1>
             <p>GraalVM Multi-Language Runtime Sandbox</p>
@@ -92,7 +122,9 @@ function App() {
             <p>Write and manage multi-language programs</p>
           </div>
 
-          <span className="workspace-label">LOCAL EDITOR</span>
+          <span className="workspace-label">
+            LOCAL EDITOR
+          </span>
         </div>
 
         <section className="editor-card">
@@ -102,7 +134,9 @@ function App() {
                 <button
                   key={language}
                   className={
-                    activeTab === language ? "tab active" : "tab"
+                    activeTab === language
+                      ? "tab active"
+                      : "tab"
                   }
                   onClick={() => setActiveTab(language)}
                 >
@@ -115,12 +149,17 @@ function App() {
             <div className="toolbar-actions">
               <button
                 className="console-toggle"
-                onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+                onClick={() =>
+                  setIsConsoleOpen(!isConsoleOpen)
+                }
               >
                 Console
               </button>
 
-              <button className="run-button" onClick={handleRun}>
+              <button
+                className="run-button"
+                onClick={handleRun}
+              >
                 ▶ Run Code
               </button>
             </div>
@@ -130,6 +169,7 @@ function App() {
             <span>
               {currentLanguage.icon} {currentLanguage.filename}
             </span>
+
             <span className="file-language">
               {activeTab}
             </span>
@@ -144,12 +184,16 @@ function App() {
               onChange={handleEditorChange}
               options={{
                 fontSize: 15,
-                minimap: { enabled: false },
+                minimap: {
+                  enabled: false
+                },
                 automaticLayout: true,
                 wordWrap: "on",
                 scrollBeyondLastLine: false,
                 tabSize: 4,
-                padding: { top: 16 },
+                padding: {
+                  top: 16
+                },
                 lineNumbers: "on",
                 folding: true,
                 suggestOnTriggerCharacters: true
@@ -160,7 +204,10 @@ function App() {
           {isConsoleOpen && (
             <div className="console">
               <div className="console-header">
-                <span>TERMINAL / OUTPUT</span>
+                <span>
+                  TERMINAL / OUTPUT
+                </span>
+
                 <button
                   onClick={() => setOutput("")}
                 >
@@ -175,9 +222,17 @@ function App() {
           )}
 
           <footer className="editor-footer">
-            <span>Language: {activeTab}</span>
-            <span>Monaco Editor</span>
-            <span>UTF-8</span>
+            <span>
+              Language: {activeTab}
+            </span>
+
+            <span>
+              Monaco Editor
+            </span>
+
+            <span>
+              UTF-8
+            </span>
           </footer>
         </section>
       </main>
