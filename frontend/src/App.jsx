@@ -8,7 +8,7 @@ const languages = {
   Java: {
     language: "java",
     filename: "Main.java",
-    icon: "☕",
+    icon: "J",
     code: `public class Main {
     public static void main(String[] args) {
         System.out.println("Hello from Java");
@@ -18,7 +18,7 @@ const languages = {
   Python: {
     language: "python",
     filename: "main.py",
-    icon: "🐍",
+    icon: "Py",
     code: `def greet():
     print("Hello from Python")
 
@@ -27,7 +27,7 @@ greet()`
   JavaScript: {
     language: "javascript",
     filename: "main.js",
-    icon: "🟨",
+    icon: "JS",
     code: `function greet() {
     console.log("Hello from JavaScript");
 }
@@ -69,16 +69,19 @@ function App() {
   );
 
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
+  const [saveStatus, setSaveStatus] = useState("Saved locally");
 
   const currentLanguage = languages[activeTab];
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
-    } catch (error) {
-      console.error("Unable to save code:", error);
-    }
-  }, [codes]);
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
+    setSaveStatus("Saved locally");
+  } catch (error) {
+    console.error("Unable to save code:", error);
+    setSaveStatus("Save failed");
+  }
+}, [codes]);
 
   const handleEditorChange = (value) => {
     setCodes((previous) => ({
@@ -96,6 +99,18 @@ function App() {
 
     setIsConsoleOpen(true);
   };
+  const handleReset = () => {
+  const confirmed = window.confirm(
+    `Restore default ${activeTab} code?`
+  );
+
+  if (!confirmed) return;
+
+  setCodes((previous) => ({
+    ...previous,
+    [activeTab]: languages[activeTab].code
+  }));
+};
 
   return (
     <div className="app">
@@ -147,22 +162,27 @@ function App() {
             </div>
 
             <div className="toolbar-actions">
-              <button
-                className="console-toggle"
-                onClick={() =>
-                  setIsConsoleOpen(!isConsoleOpen)
-                }
-              >
-                Console
-              </button>
+  <button
+    className="console-toggle"
+    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+  >
+    Console
+  </button>
 
-              <button
-                className="run-button"
-                onClick={handleRun}
-              >
-                ▶ Run Code
-              </button>
-            </div>
+  <button
+    className="console-toggle"
+    onClick={handleReset}
+  >
+    Reset Code
+  </button>
+
+  <button
+    className="run-button"
+    onClick={handleRun}
+  >
+Run Code
+  </button>
+</div>
           </div>
 
           <div className="file-bar">
@@ -221,19 +241,11 @@ function App() {
             </div>
           )}
 
-          <footer className="editor-footer">
-            <span>
-              Language: {activeTab}
-            </span>
-
-            <span>
-              Monaco Editor
-            </span>
-
-            <span>
-              UTF-8
-            </span>
-          </footer>
+<footer className="editor-footer">
+  <span>Language: {activeTab}</span>
+  <span>Monaco Editor</span>
+  <span>{saveStatus}</span>
+</footer>
         </section>
       </main>
     </div>
