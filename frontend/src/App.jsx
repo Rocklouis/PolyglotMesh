@@ -70,50 +70,81 @@ function App() {
 
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
   const [saveStatus, setSaveStatus] = useState("Saved locally");
+  const [isRunning, setIsRunning] = useState(false);
+  const [executionStatus, setExecutionStatus] = useState("Ready");
 
   const currentLanguage = languages[activeTab];
 
   useEffect(() => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
-    setSaveStatus("Saved locally");
-  } catch (error) {
-    console.error("Unable to save code:", error);
-    setSaveStatus("Save failed");
-  }
-}, [codes]);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
+      setSaveStatus("Saved locally");
+    } catch (error) {
+      console.error("Unable to save code:", error);
+      setSaveStatus("Save failed");
+    }
+  }, [codes]);
 
   const handleEditorChange = (value) => {
     setCodes((previous) => ({
       ...previous,
       [activeTab]: value ?? ""
     }));
+
+    setSaveStatus("Saving...");
   };
 
   const handleRun = () => {
+    if (!codes[activeTab].trim()) {
+      setOutput("Error: Cannot execute empty code.");
+      setExecutionStatus("Error");
+      setIsConsoleOpen(true);
+      return;
+    }
+
+    setIsRunning(true);
+    setExecutionStatus("Running");
+    setIsConsoleOpen(true);
+
     setOutput(
-      `Preparing ${activeTab} execution...\n\n` +
+      `Starting ${activeTab} execution...\n\n` +
+      `File: ${currentLanguage.filename}\n` +
+      `Language: ${activeTab}\n\n` +
       "Execution API is not connected yet.\n" +
-      "Your code is ready to be sent to the GraalVM backend."
+      "The code is ready to be sent to the GraalVM backend."
     );
 
+    setTimeout(() => {
+      setIsRunning(false);
+      setExecutionStatus("Ready");
+    }, 700);
+  };
+
+  const handleReset = () => {
+    const confirmed = window.confirm(
+      `Restore default ${activeTab} code?`
+    );
+
+    if (!confirmed) return;
+
+    setCodes((previous) => ({
+      ...previous,
+      [activeTab]: languages[activeTab].code
+    }));
+
+    setOutput(`${activeTab} code restored to default.`);
+    setExecutionStatus("Ready");
     setIsConsoleOpen(true);
   };
-  const handleReset = () => {
-  const confirmed = window.confirm(
-    `Restore default ${activeTab} code?`
-  );
 
-  if (!confirmed) return;
-
-  setCodes((previous) => ({
-    ...previous,
-    [activeTab]: languages[activeTab].code
-  }));
-};
+  const handleClearOutput = () => {
+    setOutput("");
+    setExecutionStatus("Ready");
+  };
 
   return (
     <div className="app">
+
       <header className="header">
         <div className="brand">
           <div className="brand-icon">P</div>
@@ -131,19 +162,24 @@ function App() {
       </header>
 
       <main className="workspace">
+
         <div className="workspace-heading">
           <div>
             <h2>Code Workspace</h2>
-            <p>Write and manage multi-language programs</p>
+            <p>
+              Write, manage and prepare multi-language programs
+            </p>
           </div>
 
           <span className="workspace-label">
-            LOCAL EDITOR
+            LOCAL IDE
           </span>
         </div>
 
         <section className="editor-card">
+
           <div className="toolbar">
+
             <div className="tabs">
               {Object.keys(languages).map((language) => (
                 <button
@@ -155,47 +191,70 @@ function App() {
                   }
                   onClick={() => setActiveTab(language)}
                 >
-                  <span>{languages[language].icon}</span>
+                  <span className="language-icon">
+                    {languages[language].icon}
+                  </span>
+
                   {language}
                 </button>
               ))}
             </div>
 
             <div className="toolbar-actions">
-  <button
-    className="console-toggle"
-    onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-  >
-    Console
-  </button>
 
-  <button
-    className="console-toggle"
-    onClick={handleReset}
-  >
-    Reset Code
-  </button>
+              <button
+                className="console-toggle"
+                onClick={() =>
+                  setIsConsoleOpen(!isConsoleOpen)
+                }
+              >
+                {isConsoleOpen ? "Hide Console" : "Show Console"}
+              </button>
 
-  <button
-    className="run-button"
-    onClick={handleRun}
-  >
-Run Code
-  </button>
-</div>
+              <button
+                className="console-toggle"
+                onClick={handleReset}
+              >
+                Reset Code
+              </button>
+
+              <button
+                className="run-button"
+                onClick={handleRun}
+                disabled={isRunning}
+              >
+                {isRunning ? "Running..." : "▶ Run Code"}
+              </button>
+
+            </div>
           </div>
 
           <div className="file-bar">
-            <span>
-              {currentLanguage.icon} {currentLanguage.filename}
-            </span>
 
-            <span className="file-language">
-              {activeTab}
-            </span>
+            <div className="file-info">
+              <span className="file-icon">
+                {currentLanguage.icon}
+              </span>
+
+              <span>
+                {currentLanguage.filename}
+              </span>
+            </div>
+
+            <div className="file-meta">
+              <span className="file-language">
+                {activeTab}
+              </span>
+
+              <span className="execution-status">
+                {executionStatus}
+              </span>
+            </div>
+
           </div>
 
           <div className="editor-container">
+
             <Editor
               height="480px"
               language={currentLanguage.language}
@@ -216,38 +275,59 @@ Run Code
                 },
                 lineNumbers: "on",
                 folding: true,
-                suggestOnTriggerCharacters: true
+                suggestOnTriggerCharacters: true,
+                smoothScrolling: true,
+                cursorSmoothCaretAnimation: "on"
               }}
             />
+
           </div>
 
           {isConsoleOpen && (
             <div className="console">
+
               <div className="console-header">
-                <span>
+
+                <div className="console-title">
+                  <span className="terminal-dot"></span>
                   TERMINAL / OUTPUT
-                </span>
+                </div>
 
                 <button
-                  onClick={() => setOutput("")}
+                  onClick={handleClearOutput}
                 >
                   Clear
                 </button>
+
               </div>
 
               <pre className="console-output">
                 {output || "No output available."}
               </pre>
+
             </div>
           )}
 
-<footer className="editor-footer">
-  <span>Language: {activeTab}</span>
-  <span>Monaco Editor</span>
-  <span>{saveStatus}</span>
-</footer>
+          <footer className="editor-footer">
+
+            <span>
+              Language: {activeTab}
+            </span>
+
+            <span>
+              Monaco Editor
+            </span>
+
+            <span>
+              {saveStatus}
+            </span>
+
+          </footer>
+
         </section>
+
       </main>
+
     </div>
   );
 }

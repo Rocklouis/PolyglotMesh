@@ -1,4 +1,3 @@
-
 * {
   box-sizing: border-box;
 }
@@ -11,6 +10,11 @@ body {
 
 button {
   font-family: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .app {
@@ -112,6 +116,7 @@ button {
   border: 1px solid #283750;
   border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
 }
 
 .toolbar {
@@ -139,6 +144,7 @@ button {
   display: flex;
   align-items: center;
   gap: 9px;
+  transition: 0.15s ease;
 }
 
 .tab:hover {
@@ -152,10 +158,17 @@ button {
   border-bottom: 2px solid #3b82f6;
 }
 
+.language-icon {
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
 .toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 0 15px;
 }
 
@@ -188,6 +201,10 @@ button {
   background: #16a34a;
 }
 
+.run-button:disabled {
+  background: #166534;
+}
+
 .file-bar {
   display: flex;
   justify-content: space-between;
@@ -199,9 +216,28 @@ button {
   color: #cbd5e1;
 }
 
+.file-info,
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-icon {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
 .file-language {
   color: #60a5fa;
   font-size: 11px;
+}
+
+.execution-status {
+  font-size: 10px;
+  color: #94a3b8;
+  padding-left: 10px;
+  border-left: 1px solid #334155;
 }
 
 .editor-container {
@@ -225,12 +261,29 @@ button {
   letter-spacing: 1px;
 }
 
+.console-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-dot {
+  width: 7px;
+  height: 7px;
+  background: #22c55e;
+  border-radius: 50%;
+}
+
 .console-header button {
   background: transparent;
   border: none;
   color: #60a5fa;
   cursor: pointer;
   font-size: 11px;
+}
+
+.console-header button:hover {
+  color: white;
 }
 
 .console-output {
@@ -271,6 +324,11 @@ button {
     font-size: 18px;
   }
 
+  .workspace-heading {
+    align-items: flex-start;
+    gap: 15px;
+  }
+
   .toolbar {
     flex-wrap: wrap;
   }
@@ -292,8 +350,26 @@ button {
     padding: 10px;
   }
 
+  .file-bar {
+    gap: 10px;
+  }
+
   .editor-footer {
     gap: 8px;
     font-size: 9px;
+  }
+}
+
+@media (max-width: 450px) {
+  .toolbar-actions {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-actions button {
+    flex: 1;
+  }
+
+  .file-meta {
+    display: none;
   }
 }
