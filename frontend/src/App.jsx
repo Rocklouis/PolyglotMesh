@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
+import { executeCode } from "./services/executionService";
 import "./App.css";
 
 const STORAGE_KEY = "polyglotmesh-code-v1";
@@ -94,31 +95,57 @@ function App() {
     setSaveStatus("Saving...");
   };
 
-  const handleRun = () => {
-    if (!codes[activeTab].trim()) {
-      setOutput("Error: Cannot execute empty code.");
-      setExecutionStatus("Error");
-      setIsConsoleOpen(true);
-      return;
-    }
-
-    setIsRunning(true);
-    setExecutionStatus("Running");
+const handleRun = async () => {
+  if (!codes[activeTab].trim()) {
+    setOutput("Error: Cannot execute empty code.");
+    setExecutionStatus("Error");
     setIsConsoleOpen(true);
+    return;
+  }
 
-    setOutput(
-      `Starting ${activeTab} execution...\n\n` +
-      `File: ${currentLanguage.filename}\n` +
-      `Language: ${activeTab}\n\n` +
-      "Execution API is not connected yet.\n" +
-      "The code is ready to be sent to the GraalVM backend."
+  setIsRunning(true);
+  setExecutionStatus("Running");
+  setIsConsoleOpen(true);
+
+  setOutput(
+    `Starting ${activeTab} execution...\n\n` +
+    `File: ${currentLanguage.filename}\n` +
+    `Language: ${activeTab}\n\n` +
+    "Executing code..."
+  );
+
+  try {
+    const result = await executeCode(
+      activeTab,
+      codes[activeTab]
     );
 
-    setTimeout(() => {
-      setIsRunning(false);
-      setExecutionStatus("Ready");
-    }, 700);
-  };
+    if (result.success) {
+      setOutput(
+        `Execution completed successfully.\n\n` +
+        `Output:\n${result.output}`
+      );
+
+      setExecutionStatus("Success");
+    } else {
+      setOutput(
+        `Execution failed.\n\n` +
+        `Error:\n${result.error}`
+      );
+
+      setExecutionStatus("Error");
+    }
+  } catch (error) {
+    setOutput(
+      `Execution failed.\n\n` +
+      `Error:\n${error.message}`
+    );
+
+    setExecutionStatus("Error");
+  } finally {
+    setIsRunning(false);
+  }
+};
 
   const handleReset = () => {
     const confirmed = window.confirm(
