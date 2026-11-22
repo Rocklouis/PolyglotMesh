@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class HelloDemo implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(HelloDemo.class);
+
     private final PolyglotEngine engine;
 
     public HelloDemo(PolyglotEngine engine) {
@@ -17,7 +18,26 @@ public class HelloDemo implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        PolyglotEngine.EvalResult js = engine.evalJavaScript("console.log('Hello from JS')");
+
+        // JavaScript execution
+        PolyglotEngine.EvalResult js =
+                engine.evalJavaScript("console.log('Hello from JS')");
+
         log.info("js stdout=[{}]", js.stdout().trim());
+
+        // Python execution
+        try {
+            PolyglotEngine.EvalResult py =
+                    engine.evalPython("print('Hello from Python')");
+
+            log.info("python stdout=[{}]", py.stdout().trim());
+
+            if (py.error() != null) {
+                log.error("Python error: {}", py.error());
+            }
+
+        } catch (Exception e) {
+            log.error("Python execution failed", e);
+        }
     }
 }
