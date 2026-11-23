@@ -1,6 +1,7 @@
-package com.polyglotmesh.security.config;
+package com.polyglotmesh.security.sandbox;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.io.IOAccess;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,8 +16,9 @@ public class SandboxConfig {
     }
 
     private Context createContext(String language) {
-        return Context.newBuilder(language)
-                .allowAllAccess(false)
-                .build();
-    }
+    return Context.newBuilder(language)
+            .allowAllAccess(false)
+            .allowIO(IOAccess.NONE)
+            .build();
+}
 }
