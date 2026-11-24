@@ -7,8 +7,16 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.springframework.stereotype.Component;
 
+import com.polyglotmesh.security.sandbox.SandboxConfig;
+
 @Component
 public class PolyglotEngine {
+
+    private final SandboxConfig sandboxConfig;
+
+    public PolyglotEngine(SandboxConfig sandboxConfig) {
+        this.sandboxConfig = sandboxConfig;
+    }
 
     public boolean isReady() {
         return true;
@@ -25,11 +33,7 @@ public class PolyglotEngine {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
 
-        try (Context context = Context.newBuilder("python")
-                .allowAllAccess(false)
-                .out(out)
-                .err(err)
-                .build()) {
+        try (Context context = sandboxConfig.createPythonContext(out,err)) {
 
             Value result = context.eval("python", code);
 
@@ -54,11 +58,7 @@ public class PolyglotEngine {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
 
-        try (Context context = Context.newBuilder("js")
-                .allowAllAccess(false)
-                .out(out)
-                .err(err)
-                .build()) {
+        try (Context context = sandboxConfig.createJavaScriptContext(out,err)) {
 
             Value result = context.eval("js", code);
 
