@@ -5,7 +5,9 @@ export async function executeCode(language, code) {
   if (!code.trim()) {
     return {
       success: false,
-      output: "",
+      stdout: "",
+      stderr: "",
+      value: "",
       error: "Cannot execute empty code."
     };
   }
@@ -32,15 +34,20 @@ export async function executeCode(language, code) {
     } catch {
       return {
         success: false,
-        output: "",
-        error: `Backend returned an invalid response (${response.status}).`
+        stdout: "",
+        stderr: "",
+        value: "",
+        error:
+          `Backend returned an invalid response (${response.status}).`
       };
     }
 
     if (!response.ok) {
       return {
         success: false,
-        output: data.output ?? "",
+        stdout: data.stdout ?? "",
+        stderr: data.stderr ?? "",
+        value: data.value ?? "",
         error:
           data.error ??
           `Execution request failed (${response.status}).`
@@ -49,15 +56,22 @@ export async function executeCode(language, code) {
 
     return {
       success: data.success ?? true,
-      output: data.output ?? "",
+      stdout: data.stdout ?? "",
+      stderr: data.stderr ?? "",
+      value: data.value ?? "",
       error: data.error ?? null
     };
+
   } catch (error) {
     return {
       success: false,
-      output: "",
+      stdout: "",
+      stderr: "",
+      value: "",
       error:
-        `Backend unavailable.\n\nUnable to connect to ${API_BASE_URL}/api/execute.\n\nMake sure the execution backend is running.`
+        `Backend unavailable.\n\n` +
+        `Unable to connect to ${API_BASE_URL}/api/execute.\n\n` +
+        `Make sure the execution backend is running.`
     };
   }
 }

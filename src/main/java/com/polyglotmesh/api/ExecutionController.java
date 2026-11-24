@@ -1,10 +1,8 @@
-
 package com.polyglotmesh.api;
 
 import com.polyglotmesh.engine.PolyglotEngine;
 import com.polyglotmesh.security.validation.InputValidator;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +33,9 @@ public class ExecutionController {
 
     public record ExecutionResponse(
             boolean success,
-            String output,
+            String stdout,
+            String stderr,
+            String value,
             String error
     ) {}
 
@@ -46,7 +46,11 @@ public class ExecutionController {
         if (request == null) {
             return ResponseEntity.badRequest().body(
                     new ExecutionResponse(
-                            false, "", "Request cannot be empty"
+                            false,
+                            "",
+                            "",
+                            null,
+                            "Request cannot be empty"
                     )
             );
         }
@@ -59,7 +63,11 @@ public class ExecutionController {
         if (validationError != null) {
             return ResponseEntity.badRequest().body(
                     new ExecutionResponse(
-                            false, "", validationError
+                            false,
+                            "",
+                            "",
+                            null,
+                            validationError
                     )
             );
         }
@@ -70,36 +78,15 @@ public class ExecutionController {
                         request.code()
                 );
 
-        String output = result.stdout();
-
-        if (output == null || output.isBlank()) {
-            output = result.value() == null
-                    ? ""
-                    : result.value();
-        }
-
-        if (result.stderr() != null
-                && !result.stderr().isBlank()) {
-
-            output += (output.isBlank() ? "" : "\n")
-                    + result.stderr();
-        }
-
-        if (result.error() != null) {
-            return ResponseEntity.ok(
-                    new ExecutionResponse(
-                            false,
-                            output,
-                            result.error()
-                    )
-            );
-        }
+        boolean success = result.error() == null;
 
         return ResponseEntity.ok(
                 new ExecutionResponse(
-                        true,
-                        output,
-                        null
+                        success,
+                        result.stdout() == null ? "" : result.stdout(),
+                        result.stderr() == null ? "" : result.stderr(),
+                        result.value(),
+                        result.error()
                 )
         );
     }

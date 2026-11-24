@@ -120,22 +120,45 @@ const handleRun = async () => {
       codes[activeTab]
     );
 
-    if (result.success) {
-      setOutput(
-        `Execution completed successfully.\n\n` +
-        `Output:\n${result.output}`
-      );
+if (result.success) {
+  let consoleText =
+    `Execution completed successfully.\n\n`;
 
-      setExecutionStatus("Success");
-    } else {
-      setOutput(
-        `Execution failed.\n\n` +
-        `Error:\n${result.error}`
-      );
+  if (result.stdout) {
+    consoleText += `Standard Output:\n${result.stdout}\n`;
+  }
 
-      setExecutionStatus("Error");
-    }
-  } catch (error) {
+  if (result.value) {
+    consoleText += `\nReturn Value:\n${result.value}\n`;
+  }
+
+  if (result.stderr) {
+    consoleText += `\nStandard Error:\n${result.stderr}\n`;
+  }
+
+  setOutput(consoleText);
+  setExecutionStatus("Success");
+
+} else {
+  let consoleText = "Execution failed.\n\n";
+
+  if (result.stdout) {
+    consoleText += `Standard Output:\n${result.stdout}\n`;
+  }
+
+  if (result.stderr) {
+    consoleText += `\nStandard Error:\n${result.stderr}\n`;
+  }
+
+  if (result.error) {
+    consoleText += `\nExecution Error:\n${result.error}`;
+  }
+
+  setOutput(consoleText);
+  setExecutionStatus("Error");
+} 
+}
+catch (error) {
     setOutput(
       `Execution failed.\n\n` +
       `Error:\n${error.message}`
@@ -279,11 +302,11 @@ const handleRun = async () => {
             </div>
 
           </div>
-
+          <div className={`workspace-panels ${!isConsoleOpen ? "console-hidden" : ""}`}>
           <div className="editor-container">
 
             <Editor
-              height="480px"
+              height="560px"
               language={currentLanguage.language}
               theme="vs-dark"
               value={codes[activeTab]}
@@ -334,6 +357,9 @@ const handleRun = async () => {
 
             </div>
           )}
+                    
+                    
+            </div>
 
           <footer className="editor-footer">
 
