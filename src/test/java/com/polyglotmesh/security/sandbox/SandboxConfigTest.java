@@ -42,4 +42,35 @@ class SandboxConfigTest {
             Files.deleteIfExists(directory);
         }
     }
+    @Test
+void javaScriptShouldNotAccessHostFileSystem() throws Exception {
+
+    Path directory = Files.createTempDirectory("sandbox-js-test");
+    Path targetFile = directory.resolve("blocked.txt");
+
+    String filePath = targetFile.toString()
+            .replace("\\", "\\\\");
+
+    String javaScriptCode =
+            "const Files = Java.type('java.nio.file.Files');" +
+            "const Paths = Java.type('java.nio.file.Paths');" +
+            "Files.writeString(Paths.get('" + filePath + "'), 'test');";
+
+    try {
+        assertThrows(PolyglotException.class, () -> {
+            try (Context context = sandboxConfig.createJavaScriptContext(
+                    new ByteArrayOutputStream(),
+                    new ByteArrayOutputStream())) {
+
+                context.eval("js", javaScriptCode);
+            }
+        });
+
+        assertFalse(Files.exists(targetFile));
+
+    } finally {
+        Files.deleteIfExists(targetFile);
+        Files.deleteIfExists(directory);
+    }
+}
 }
