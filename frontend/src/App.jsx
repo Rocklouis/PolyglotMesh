@@ -96,75 +96,74 @@ function App() {
   };
 
 const handleRun = async () => {
-  if (!codes[activeTab].trim()) {
-    setOutput("Error: Cannot execute empty code.");
+  const code = codes[activeTab];
+
+  if (!code.trim()) {
+    setOutput("Cannot execute empty code.");
     setExecutionStatus("Error");
-    setIsConsoleOpen(true);
+    return;
+  }
+
+  if (isRunning) {
     return;
   }
 
   setIsRunning(true);
   setExecutionStatus("Running");
-  setIsConsoleOpen(true);
-
   setOutput(
-    `Starting ${activeTab} execution...\n\n` +
-    `File: ${currentLanguage.filename}\n` +
-    `Language: ${activeTab}\n\n` +
-    "Executing code..."
+    `Executing ${languages[activeTab].label}...\n\nPlease wait.`
   );
 
   try {
-    const result = await executeCode(
-      activeTab,
-      codes[activeTab]
-    );
+    const result = await executeCode(activeTab, code);
 
-if (result.success) {
-  let consoleText =
-    `Execution completed successfully.\n\n`;
+    if (result.success) {
+      let consoleText =
+        `Execution completed successfully.\n\n`;
 
-  if (result.stdout) {
-    consoleText += `Standard Output:\n${result.stdout}\n`;
-  }
+      if (result.stdout) {
+        consoleText += `Standard Output:\n${result.stdout}\n`;
+      }
 
-  if (result.value) {
-    consoleText += `\nReturn Value:\n${result.value}\n`;
-  }
+      if (result.value) {
+        consoleText += `\nReturn Value:\n${result.value}\n`;
+      }
 
-  if (result.stderr) {
-    consoleText += `\nStandard Error:\n${result.stderr}\n`;
-  }
+      if (result.stderr) {
+        consoleText += `\nStandard Error:\n${result.stderr}\n`;
+      }
 
-  setOutput(consoleText);
-  setExecutionStatus("Success");
+      setOutput(consoleText);
+      setExecutionStatus("Success");
 
-} else {
-  let consoleText = "Execution failed.\n\n";
+    } else {
+      let consoleText = "Execution failed.\n\n";
 
-  if (result.stdout) {
-    consoleText += `Standard Output:\n${result.stdout}\n`;
-  }
+      if (result.stdout) {
+        consoleText += `Standard Output:\n${result.stdout}\n`;
+      }
 
-  if (result.stderr) {
-    consoleText += `\nStandard Error:\n${result.stderr}\n`;
-  }
+      if (result.stderr) {
+        consoleText += `\nStandard Error:\n${result.stderr}\n`;
+      }
 
-  if (result.error) {
-    consoleText += `\nExecution Error:\n${result.error}`;
-  }
+      if (result.error) {
+        consoleText += `\nExecution Error:\n${result.error}`;
+      }
 
-  setOutput(consoleText);
-  setExecutionStatus("Error");
-} 
-}
-catch (error) {
+      setOutput(consoleText);
+      setExecutionStatus("Error");
+    }
+
+  } catch (error) {
     setOutput(
-      `Execution failed.\n\n` +
-      `Error:\n${error.message}`
+      "Execution failed.\n\n" +
+      "Unexpected frontend error:\n" +
+      error.message
     );
 
     setExecutionStatus("Error");
+
   } finally {
     setIsRunning(false);
   }
@@ -269,12 +268,12 @@ catch (error) {
               </button>
 
               <button
-                className="run-button"
-                onClick={handleRun}
-                disabled={isRunning}
-              >
-                {isRunning ? "Running..." : "▶ Run Code"}
-              </button>
+  className="run-button"
+  onClick={handleRun}
+  disabled={isRunning}
+>
+  {isRunning ? "Running..." : "Run"}
+</button>
 
             </div>
           </div>
