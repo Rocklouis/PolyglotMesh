@@ -1,10 +1,45 @@
 # PolyglotMesh
 
-PolyglotMesh is a GraalVM-powered multi-language runtime sandbox that enables Java applications to execute Python and JavaScript code within a unified runtime.
+GraalVM Multi-Language Runtime Sandbox
 
-## Technologies
-- Java
-- GraalVM
-- Python
-- JavaScript
+## Features
+
+- Monaco code editor
+- Java, Python and JavaScript tabs
+- Python execution
+- JavaScript execution
+- Run-state handling
+- stdout/stderr/error handling
+- Console output
+- Backend API integration
+- Input validation
+
+## Tech Stack
+
+Frontend:
+- React
+- Vite
+- Monaco Editor
+
+Backend:
 - Spring Boot
+- GraalVM Polyglot
+- Java 21
+
+## Running the project
+
+### Backend
+
+mvn spring-boot:run
+
+Backend:
+http://localhost:8081
+
+### Frontend
+
+cd frontend
+npm install
+npm run dev
+
+Frontend:
+http://localhost:5173
