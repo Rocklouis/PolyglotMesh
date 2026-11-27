@@ -1,6 +1,8 @@
 package com.polyglotmesh.security.sandbox;
 
 import java.io.ByteArrayOutputStream;
+import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -71,6 +73,52 @@ void javaScriptShouldNotAccessHostFileSystem() throws Exception {
     } finally {
         Files.deleteIfExists(targetFile);
         Files.deleteIfExists(directory);
+    }
+}
+@Test
+void pythonShouldNotAccessNetwork() throws Exception {
+
+    try (ServerSocket server = new ServerSocket(0)) {
+        server.setSoTimeout(1000);
+
+        String pythonCode =
+                "import socket\n" +
+                "s = socket.socket()\n" +
+                "s.connect(('127.0.0.1', " + server.getLocalPort() + "))";
+
+        assertThrows(PolyglotException.class, () -> {
+            try (Context context = sandboxConfig.createPythonContext(
+                    new ByteArrayOutputStream(),
+                    new ByteArrayOutputStream())) {
+
+                context.eval("python", pythonCode);
+            }
+        });
+
+        assertThrows(SocketTimeoutException.class, server::accept);
+    }
+}
+@Test
+void javaScriptShouldNotAccessNetwork() throws Exception {
+
+    try (ServerSocket server = new ServerSocket(0)) {
+        server.setSoTimeout(1000);
+
+        String javaScriptCode =
+                "const Socket = Java.type('java.net.Socket');" +
+                "const socket = new Socket('127.0.0.1', "
+                + server.getLocalPort() + ");";
+
+        assertThrows(PolyglotException.class, () -> {
+            try (Context context = sandboxConfig.createJavaScriptContext(
+                    new ByteArrayOutputStream(),
+                    new ByteArrayOutputStream())) {
+
+                context.eval("js", javaScriptCode);
+            }
+        });
+
+        assertThrows(SocketTimeoutException.class, server::accept);
     }
 }
 }
