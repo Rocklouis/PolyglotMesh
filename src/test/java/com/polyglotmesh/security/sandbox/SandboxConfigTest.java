@@ -99,7 +99,7 @@ void pythonShouldNotAccessNetwork() throws Exception {
     }
 }
 @Test
-void javaScriptShouldNotAccessNetwork() throws Exception {
+void javaScriptShouldNotAccessHostJavaSocket() throws Exception {
 
     try (ServerSocket server = new ServerSocket(0)) {
         server.setSoTimeout(1000);
