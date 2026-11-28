@@ -8,6 +8,7 @@ import java.nio.file.Path;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
@@ -96,6 +97,31 @@ void pythonShouldNotAccessNetwork() throws Exception {
         });
 
         assertThrows(SocketTimeoutException.class, server::accept);
+    }
+}
+@Test
+void pythonShouldExecuteCodeWithinSandbox() {
+
+    try (Context context = sandboxConfig.createPythonContext(
+            new ByteArrayOutputStream(),
+            new ByteArrayOutputStream())) {
+
+        int result = context.eval("python", "1 + 1").asInt();
+
+        assertEquals(2, result);
+    }
+}
+
+@Test
+void javaScriptShouldExecuteCodeWithinSandbox() {
+
+    try (Context context = sandboxConfig.createJavaScriptContext(
+            new ByteArrayOutputStream(),
+            new ByteArrayOutputStream())) {
+
+        int result = context.eval("js", "1 + 1").asInt();
+
+        assertEquals(2, result);
     }
 }
 @Test
